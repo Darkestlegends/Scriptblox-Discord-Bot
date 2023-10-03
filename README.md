@@ -12,7 +12,7 @@ To use the bot, invite it to your Discord server and use the following command:
 !search [query] [mode]
 ```
 - Replace `[query]` with your search query.
-- Optionally, specify `[mode]` as 'free' or 'paid' to filter by script type (default is 'free').
+- Optionally, specify `[mode]` as `'free'` or `'paid'` to filter by script type (default is 'free').
 - `Query = [game name] or [script name]`
 
 ## Configuration
