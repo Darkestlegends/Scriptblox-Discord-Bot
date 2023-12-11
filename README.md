@@ -4,12 +4,13 @@ A Discord bot that allows users to search for scripts using the ScriptBlox API.
 
 ## Getting Started
 
-These instructions will help you set up and run the bot on your server.
+These instructions will help you set up and run the bot on your server. If running the bot on your computer and not replit u can use run "main.py" to start it in the console
 
 ## Usage
 To use the bot, invite it to your Discord server and use the following command:
 ```
-!search [query] [mode]
+.search [query] [mode]
+.download [query] [mode]
 ```
 - Replace `[query]` with your search query.
 - Replace `[mode]` as `'free'` or `'paid'` to filter by script type (default is 'free').
