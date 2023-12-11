@@ -1,14 +1,17 @@
+import os
+import shutil
+import asyncio
+from zipfile import ZipFile  
+from io import BytesIO
+
 import discord
 from discord.ext import commands
+
 import requests
-import os
 from flask import Flask
 from threading import Thread
-import asyncio
 from dotenv import load_dotenv
-import shutil
-from zipfile import ZipFile
-from io import BytesIO
+
 
 load_dotenv()
 
@@ -38,49 +41,6 @@ def run_flask():
 
 flask_thread = Thread(target=run_flask)
 flask_thread.start()
-
-# Function to handle the download action
-async def handle_download(ctx, game_name, scripts):
-    if not scripts:
-        await ctx.send("No scripts found!")
-        return
-
-    is_replit = "REPLIT_DB_URL" in os.environ
-    temp_dir = f"/tmp/game_scripts_for_{game_name.replace(' ', '_')}" if is_replit else f"game_scripts_for_{game_name.replace(' ', '_')}"
-    os.makedirs(temp_dir, exist_ok=True)
-
-    # Write scripts to individual files
-    for script in scripts:
-        title = script["title"]
-        script_content = script["script"]
-        sanitized_title = title.replace(' ', '_')
-        filename = os.path.join(temp_dir, f"{sanitized_title}.lua")
-
-        with open(filename, 'w', encoding='utf-8') as file:
-            file.write(script_content)
-
-    # Create a BytesIO object to store the zip file content in memory
-    zip_content = BytesIO()
-
-    # Write files to the ZIP archive
-    with ZipFile(zip_content, 'w') as zip_file:
-        for script in scripts:
-            title = script["title"]
-            filename = os.path.join(temp_dir, f"{title.replace(' ', '_')}.lua")
-            zip_file.write(filename, os.path.basename(filename))
-
-    zip_content.seek(0)
-
-    loading_message = await ctx.send(embed=discord.Embed(description=":hourglass_flowing_sand: Loading..."))
-    await asyncio.sleep(4)
-
-    await ctx.author.send(file=discord.File(zip_content, filename=f"{game_name}_scripts.zip"))
-
-    await loading_message.edit(embed=discord.Embed(description=":white_check_mark: Download complete! Check your DMs."))
-    await ctx.send(f"**{game_name} scripts have been sent to your DMs!**")
-
-    if not is_replit:
-        shutil.rmtree(temp_dir)
 
 @bot.command()
 async def search(ctx, query=None, mode='free'):
@@ -209,7 +169,47 @@ async def download(ctx, game_name=None):
 
     if "result" in data and "scripts" in data["result"]:
         scripts = data["result"]["scripts"]
-        await handle_download(ctx, game_name, scripts)
+
+        if not scripts:
+            await ctx.send(f"No scripts found for the game: {game_name}")
+            return
+
+        is_replit = "REPLIT_DB_URL" in os.environ
+        temp_dir = f"/tmp/game_scripts_for_{game_name.replace(' ', '_')}" if is_replit else f"game_scripts_for_{game_name.replace(' ', '_')}"
+        os.makedirs(temp_dir, exist_ok=True)
+
+        # Write scripts to individual files
+        for script in scripts:
+            title = script["title"]
+            script_content = script["script"]
+            sanitized_title = title.replace(' ', '_')
+            filename = os.path.join(temp_dir, f"{sanitized_title}.lua")
+
+            with open(filename, 'w', encoding='utf-8') as file:
+                file.write(script_content)
+
+        # Create a BytesIO object to store the zip file content in memory
+        zip_content = BytesIO()
+
+        # Write files to the ZIP archive
+        with ZipFile(zip_content, 'w') as zip_file:
+            for script in scripts:
+                title = script["title"]
+                filename = os.path.join(temp_dir, f"{title.replace(' ', '_')}.lua")
+                zip_file.write(filename, os.path.basename(filename))
+
+        zip_content.seek(0)
+
+        loading_message = await ctx.send(embed=discord.Embed(description=":hourglass_flowing_sand: Loading..."))
+        await asyncio.sleep(4)
+
+        progress_message = await ctx.send(file=discord.File(zip_content, filename=f"{game_name}_scripts.zip"))
+
+        await loading_message.edit(embed=discord.Embed(description=":white_check_mark: Download complete!"))
+        await ctx.send(f"**{game_name} scripts have been sent!**")
+
+        if not is_replit:
+            shutil.rmtree(temp_dir)
     else:
         await ctx.send(f"No scripts found for the game: {game_name}")
 
