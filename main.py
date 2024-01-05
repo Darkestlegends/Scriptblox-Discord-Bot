@@ -200,10 +200,11 @@ async def download(ctx, game_name=None):
 
         zip_content.seek(0)
 
-        loading_message = await ctx.send(embed=discord.Embed(description=":hourglass_flowing_sand: Loading..."))
+        loading_message = await ctx.send(embed=discord.Embed(description=":hourglass_flowing_sand: downloading..."))
         await asyncio.sleep(4)
 
-        progress_message = await ctx.send(file=discord.File(zip_content, filename=f"{game_name}_scripts.zip"))
+        progress_message = await ctx.author.send(file=discord.File(zip_content, filename=f"{game_name}_scripts.zip"))
+
 
         await loading_message.edit(embed=discord.Embed(description=":white_check_mark: Download complete!"))
         await ctx.send(f"**{game_name} scripts have been sent!**")
